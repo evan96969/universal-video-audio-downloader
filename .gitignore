@@ -33,3 +33,7 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Deployment additions
+ios-app/
+downloads/
