@@ -69,6 +69,11 @@ class Analyzer:
             "skip_download": True,
             "noplaylist": True,
             "socket_timeout": 30,
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android", "web"]
+                }
+            }
         }
         if self._ffmpeg:
             ydl_opts["ffmpeg_location"] = self._ffmpeg

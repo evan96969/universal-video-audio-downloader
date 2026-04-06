@@ -152,6 +152,11 @@ class Downloader:
             "windowsfilenames": True,
             "overwrites": self._overwrite,
             "progress_hooks": [],
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android", "web"]
+                }
+            }
         }
 
         if self._ffmpeg:
