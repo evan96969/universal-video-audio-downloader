@@ -69,9 +69,10 @@ class Analyzer:
             "skip_download": True,
             "noplaylist": True,
             "socket_timeout": 30,
+            "rm_cachedir": True,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["android"]
+                    "player_client": ["tv", "ios", "android_vr"]
                 }
             }
         }

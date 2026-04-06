@@ -152,9 +152,10 @@ class Downloader:
             "windowsfilenames": True,
             "overwrites": self._overwrite,
             "progress_hooks": [],
+            "rm_cachedir": True,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["android"]
+                    "player_client": ["tv", "ios", "android_vr"]
                 }
             }
         }
