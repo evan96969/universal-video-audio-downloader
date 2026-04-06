@@ -154,7 +154,7 @@ class Downloader:
             "progress_hooks": [],
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["android", "web"]
+                    "player_client": ["android"]
                 }
             }
         }

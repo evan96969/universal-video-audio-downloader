@@ -71,7 +71,7 @@ class Analyzer:
             "socket_timeout": 30,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["android", "web"]
+                    "player_client": ["android"]
                 }
             }
         }
