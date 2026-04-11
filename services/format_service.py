@@ -78,6 +78,8 @@ def parse_video_formats(raw_formats: list[dict]) -> list[FormatItem]:
         parts.append("vidéo + audio" if has_audio else "vidéo seule")
 
         filesize = fmt.get("filesize") or fmt.get("filesize_approx")
+        if filesize is not None:
+            filesize = int(filesize)
 
         if filesize:
             parts.append(f"~{format_filesize(filesize)}")
@@ -128,6 +130,8 @@ def parse_audio_formats(raw_formats: list[dict]) -> list[FormatItem]:
         seen.add(dedup_key)
 
         filesize = fmt.get("filesize") or fmt.get("filesize_approx")
+        if filesize is not None:
+            filesize = int(filesize)
 
         parts = [ext.upper()]
         ac_short = _short_codec(acodec)

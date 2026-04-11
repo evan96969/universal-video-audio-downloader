@@ -155,10 +155,22 @@ class Downloader:
             "rm_cachedir": True,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["tv", "ios", "android_vr"]
+                    "player_client": ["android"]
                 }
-            }
+            },
+            "http_headers": {
+                "User-Agent": (
+                    "Mozilla/5.0 (Linux; Android 11; Pixel 5) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/90.0.4430.91 Mobile Safari/537.36"
+                )
+            },
         }
+
+        # Optional cookie file for sites requiring authentication
+        cookie_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
+        if os.path.isfile(cookie_path) and os.path.getsize(cookie_path) > 0:
+            opts["cookiefile"] = cookie_path
 
         if self._ffmpeg:
             opts["ffmpeg_location"] = self._ffmpeg

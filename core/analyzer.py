@@ -4,6 +4,7 @@ Extracts metadata and available formats from a public URL.
 """
 
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 
@@ -24,7 +25,7 @@ class MediaInfo:
     title: str = ""
     platform: str = ""
     uploader: str = ""
-    duration: int | None = None          # seconds
+    duration: float | int | None = None   # seconds (may be float from some platforms)
     thumbnail_url: str = ""
     webpage_url: str = ""
     formats: list[dict] = field(default_factory=list)
@@ -34,7 +35,8 @@ class MediaInfo:
     def duration_str(self) -> str:
         if self.duration is None:
             return "—"
-        m, s = divmod(self.duration, 60)
+        total = int(self.duration)
+        m, s = divmod(total, 60)
         h, m = divmod(m, 60)
         if h:
             return f"{h}:{m:02d}:{s:02d}"
@@ -72,10 +74,22 @@ class Analyzer:
             "rm_cachedir": True,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["tv", "ios", "android_vr"]
+                    "player_client": ["android"]
                 }
-            }
+            },
+            "http_headers": {
+                "User-Agent": (
+                    "Mozilla/5.0 (Linux; Android 11; Pixel 5) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/90.0.4430.91 Mobile Safari/537.36"
+                )
+            },
         }
+
+        # Optional cookie file for sites requiring authentication
+        cookie_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
+        if os.path.isfile(cookie_path) and os.path.getsize(cookie_path) > 0:
+            ydl_opts["cookiefile"] = cookie_path
         if self._ffmpeg:
             ydl_opts["ffmpeg_location"] = self._ffmpeg
 

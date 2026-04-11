@@ -119,6 +119,23 @@ mediaflow/
     └── logger.py                # Système de logs
 ```
 
+## YouTube — Contournement de la détection anti-bot
+
+YouTube peut bloquer les téléchargements avec le message **"Sign in to confirm you're not a bot"**. Ce projet utilise plusieurs techniques pour contourner ce problème :
+
+1. **Client Android** (activé par défaut) : au lieu du client web classique, l'application se présente comme l'application Android officielle de YouTube. Cela suffit dans la grande majorité des cas.
+2. **User-Agent mobile réaliste** : un en-tête User-Agent mobile (Pixel 5 / Android 11) est envoyé avec chaque requête.
+3. **Fichier de cookies (optionnel)** : en dernier recours, si vous êtes toujours bloqué, vous pouvez exporter vos cookies YouTube depuis votre navigateur au format Netscape et les placer dans `cookies.txt` à la racine du projet. L'application les utilisera automatiquement.
+
+> 💡 **Dans la plupart des cas, aucun cookie n'est nécessaire.** Le client Android contourne la détection anti-bot de manière transparente.
+
+### Comment exporter ses cookies (si nécessaire)
+
+1. Installez l'extension [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) dans votre navigateur
+2. Connectez-vous à YouTube
+3. Exportez les cookies au format Netscape
+4. Collez le contenu dans le fichier `cookies.txt` à la racine du projet
+
 ## Limites connues
 
 - Les contenus privés, protégés par mot de passe ou nécessitant une authentification ne sont pas supportés (par design)

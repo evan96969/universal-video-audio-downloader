@@ -1,0 +1,11 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+# 
+# To use this file, export your browser cookies in Netscape format
+# and paste them below. The application will automatically use them
+# as a fallback when the Android client trick is not sufficient.
+#
+# The Android client method bypasses most bot detection without cookies.
+# Only populate this file if you encounter persistent authentication issues.
+#
