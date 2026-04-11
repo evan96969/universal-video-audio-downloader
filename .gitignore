@@ -35,5 +35,11 @@ Thumbs.db
 desktop.ini
 
 # Deployment additions
-ios-app/
 downloads/
+
+# ios-app (Expo / React Native)
+ios-app/node_modules/
+ios-app/.expo/
+ios-app/dist/
+ios-app/web-build/
+ios-app/expo-env.d.ts
