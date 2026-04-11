@@ -81,6 +81,11 @@ def upload_cookies(req: CookieUpload):
             detail="Format invalide. Utilisez le format Netscape (fichier cookies.txt exporté depuis votre navigateur)."
         )
     
+    # Python's http.cookiejar (used by yt-dlp) silently ignores the file
+    # if it doesn't start with the exact magic header comment.
+    if not text.startswith("# Netscape HTTP Cookie File") and not text.startswith("# HTTP Cookie File"):
+        text = "# Netscape HTTP Cookie File\n" + text
+    
     COOKIE_FILE.write_text(text, encoding="utf-8")
     return {"success": True, "message": "Cookies enregistrés. Les téléchargements YouTube devraient fonctionner."}
 
