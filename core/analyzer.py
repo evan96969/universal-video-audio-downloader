@@ -42,11 +42,28 @@ class MediaInfo:
             return f"{h}:{m:02d}:{s:02d}"
         return f"{m}:{s:02d}"
 
-
 def validate_url(url: str) -> bool:
     """Basic syntactic URL check."""
     return bool(_URL_RE.match(url.strip()))
 
+
+def _has_real_cookies(path: str) -> bool:
+    """Check if a cookie file exists and contains actual cookie data lines."""
+    if not os.path.isfile(path):
+        return False
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith("#"):
+                    continue
+                # A real Netscape cookie line has tab-separated fields
+                if "\t" in line:
+                    return True
+        return False
+    except OSError:
+        return False
 
 class Analyzer:
     """Wraps yt-dlp extract_info to fetch metadata + format list."""
@@ -74,21 +91,22 @@ class Analyzer:
             "rm_cachedir": True,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["android"]
+                    "player_client": ["default", "web_embedded"],
+                    "formats": ["duplicate", "missing_pot"],
                 }
             },
             "http_headers": {
                 "User-Agent": (
-                    "Mozilla/5.0 (Linux; Android 11; Pixel 5) "
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/90.0.4430.91 Mobile Safari/537.36"
+                    "Chrome/131.0.0.0 Safari/537.36"
                 )
             },
         }
 
         # Optional cookie file for sites requiring authentication
         cookie_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
-        if os.path.isfile(cookie_path) and os.path.getsize(cookie_path) > 0:
+        if _has_real_cookies(cookie_path):
             ydl_opts["cookiefile"] = cookie_path
         if self._ffmpeg:
             ydl_opts["ffmpeg_location"] = self._ffmpeg

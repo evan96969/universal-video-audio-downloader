@@ -57,6 +57,47 @@ class DownloadRequest(BaseModel):
     audio_format: str = "mp3"
     audio_bitrate: str = "192"
 
+class CookieUpload(BaseModel):
+    cookies_text: str
+
+COOKIE_FILE = Path("cookies.txt")
+
+@app.post("/api/cookies")
+def upload_cookies(req: CookieUpload):
+    """Save YouTube cookies (Netscape format) to enable authenticated downloads."""
+    text = req.cookies_text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Le contenu des cookies est vide.")
+    
+    # Basic validation: check for tab-separated lines
+    has_data = any(
+        "\t" in line
+        for line in text.splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    )
+    if not has_data:
+        raise HTTPException(
+            status_code=400,
+            detail="Format invalide. Utilisez le format Netscape (fichier cookies.txt exporté depuis votre navigateur)."
+        )
+    
+    COOKIE_FILE.write_text(text, encoding="utf-8")
+    return {"success": True, "message": "Cookies enregistrés. Les téléchargements YouTube devraient fonctionner."}
+
+@app.get("/api/cookies/status")
+def cookies_status():
+    """Check if valid cookies are configured."""
+    from core.analyzer import _has_real_cookies
+    has_cookies = _has_real_cookies(str(COOKIE_FILE))
+    return {"has_cookies": has_cookies}
+
+@app.delete("/api/cookies")
+def delete_cookies():
+    """Remove saved cookies."""
+    if COOKIE_FILE.exists():
+        COOKIE_FILE.write_text("# Netscape HTTP Cookie File\n", encoding="utf-8")
+    return {"success": True, "message": "Cookies supprimés."}
+
 @app.post("/api/analyze")
 def analyze_url(req: AnalyzeRequest):
     try:

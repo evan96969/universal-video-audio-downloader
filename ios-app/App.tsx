@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Platform, Modal } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
@@ -16,6 +16,65 @@ export default function App() {
   
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState<any>(null);
+
+  // Cookie management
+  const [showCookieModal, setShowCookieModal] = useState(false);
+  const [cookieText, setCookieText] = useState('');
+  const [hasCookies, setHasCookies] = useState(false);
+  const [cookieLoading, setCookieLoading] = useState(false);
+
+  // Check cookie status on mount
+  useEffect(() => {
+    checkCookieStatus();
+  }, []);
+
+  const checkCookieStatus = async () => {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/cookies/status`);
+      const data = await res.json();
+      setHasCookies(data.has_cookies);
+    } catch (e) {
+      // Server might be cold, ignore
+    }
+  };
+
+  const uploadCookies = async () => {
+    if (!cookieText.trim()) {
+      setErrorMsg('Collez le contenu de votre fichier cookies.txt');
+      return;
+    }
+    setCookieLoading(true);
+    try {
+      const res = await fetch(`${SERVER_URL}/api/cookies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cookies_text: cookieText })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHasCookies(true);
+        setShowCookieModal(false);
+        setCookieText('');
+        setErrorMsg('');
+      } else {
+        setErrorMsg(data.detail || 'Erreur lors de l\'envoi des cookies');
+      }
+    } catch (e: any) {
+      setErrorMsg(e.message);
+    } finally {
+      setCookieLoading(false);
+    }
+  };
+
+  const deleteCookies = async () => {
+    try {
+      await fetch(`${SERVER_URL}/api/cookies`, { method: 'DELETE' });
+      setHasCookies(false);
+      setShowCookieModal(false);
+    } catch (e: any) {
+      setErrorMsg(e.message);
+    }
+  };
 
   const analyzeUrl = async (customUrl?: string) => {
     const urlToUse = typeof customUrl === 'string' ? customUrl : url;
@@ -44,7 +103,15 @@ export default function App() {
       if (data.success) {
         setMediaData(data);
       } else {
-        setErrorMsg(data.detail || 'Erreur lors de l\'analyse');
+        const detail = data.detail || '';
+        // Detect YouTube bot error and show helpful message
+        if (detail.includes('Sign in to confirm') || detail.includes('not a bot')) {
+          setErrorMsg(
+            'YouTube bloque cette requête. Cliquez sur "⚙️ Cookies YouTube" ci-dessous pour configurer vos cookies et débloquer les téléchargements.'
+          );
+        } else {
+          setErrorMsg(detail || 'Erreur lors de l\'analyse');
+        }
       }
     } catch (e: any) {
       clearTimeout(timeoutMsgId);
@@ -162,7 +229,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>MediaFlow iOS</Text>
+        <Text style={styles.title}>MediaFlow</Text>
         <Text style={styles.subtitle}>Serveur Cloud Indépendant</Text>
       </View>
       
@@ -186,9 +253,24 @@ export default function App() {
          </TouchableOpacity>
       </View>
 
+      {/* Cookie management button */}
+      <TouchableOpacity 
+        style={[styles.cookieButton, hasCookies && styles.cookieButtonActive]} 
+        onPress={() => setShowCookieModal(true)}
+      >
+        <Text style={styles.cookieButtonText}>
+          ⚙️ Cookies YouTube {hasCookies ? '✅' : '(non configurés)'}
+        </Text>
+      </TouchableOpacity>
+
       {errorMsg ? (
         <View style={styles.errorBox}>
            <Text style={styles.errorText}>{errorMsg}</Text>
+           {(errorMsg.includes('cookie') || errorMsg.includes('Cookie') || errorMsg.includes('bot')) && (
+             <TouchableOpacity style={styles.cookieFixButton} onPress={() => setShowCookieModal(true)}>
+               <Text style={styles.cookieFixButtonText}>Configurer les cookies →</Text>
+             </TouchableOpacity>
+           )}
         </View>
       ) : null}
 
@@ -222,6 +304,68 @@ export default function App() {
            <View style={{height: 100}} />
         </ScrollView>
       )}
+
+      {/* Cookie Modal */}
+      <Modal
+        visible={showCookieModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCookieModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>🍪 Cookies YouTube</Text>
+            <Text style={styles.modalDesc}>
+              YouTube bloque les serveurs cloud. Pour débloquer, exportez vos cookies YouTube depuis votre navigateur et collez-les ici.
+            </Text>
+            
+            <Text style={styles.modalSteps}>
+              1. Installez l'extension "Get cookies.txt LOCALLY" dans Chrome/Edge{'\n'}
+              2. Allez sur youtube.com (connecté à votre compte){'\n'}
+              3. Cliquez sur l'extension → Exporter{'\n'}
+              4. Copiez tout le contenu et collez-le ci-dessous
+            </Text>
+
+            <TextInput
+              style={styles.cookieInput}
+              placeholder="Collez le contenu de cookies.txt ici..."
+              placeholderTextColor="#666"
+              multiline
+              numberOfLines={6}
+              value={cookieText}
+              onChangeText={setCookieText}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalBtn, styles.modalBtnPrimary]} 
+                onPress={uploadCookies}
+                disabled={cookieLoading}
+              >
+                <Text style={styles.modalBtnText}>
+                  {cookieLoading ? 'Envoi...' : 'Enregistrer'}
+                </Text>
+              </TouchableOpacity>
+
+              {hasCookies && (
+                <TouchableOpacity 
+                  style={[styles.modalBtn, styles.modalBtnDanger]} 
+                  onPress={deleteCookies}
+                >
+                  <Text style={styles.modalBtnText}>Supprimer</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity 
+                style={[styles.modalBtn, styles.modalBtnCancel]} 
+                onPress={() => setShowCookieModal(false)}
+              >
+                <Text style={styles.modalBtnTextCancel}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -290,6 +434,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cookieButton: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#1e1e1e',
+    borderWidth: 1,
+    borderColor: '#333',
+    alignItems: 'center',
+  },
+  cookieButtonActive: {
+    borderColor: '#34c759',
+    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+  },
+  cookieButtonText: {
+    color: '#aaa',
+    fontSize: 13,
+  },
+  cookieFixButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cookieFixButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   resultsContainer: {
     marginTop: 25,
@@ -374,5 +547,84 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#007AFF',
     borderRadius: 4,
-  }
+  },
+  // Cookie Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#1e1e1e',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  modalDesc: {
+    color: '#ccc',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 15,
+    lineHeight: 20,
+  },
+  modalSteps: {
+    color: '#aaa',
+    fontSize: 13,
+    marginBottom: 15,
+    lineHeight: 20,
+    backgroundColor: '#161616',
+    padding: 12,
+    borderRadius: 8,
+  },
+  cookieInput: {
+    backgroundColor: '#0d0d0d',
+    color: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 12,
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: '#333',
+    textAlignVertical: 'top',
+    fontFamily: Platform.OS === 'web' ? 'monospace' : undefined,
+    marginBottom: 15,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalBtnPrimary: {
+    backgroundColor: '#34c759',
+  },
+  modalBtnDanger: {
+    backgroundColor: '#ff3b30',
+  },
+  modalBtnCancel: {
+    backgroundColor: '#333',
+  },
+  modalBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  modalBtnTextCancel: {
+    color: '#aaa',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
 });
