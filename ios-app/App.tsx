@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Platform, Modal } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Platform, Modal, Linking } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
@@ -320,7 +320,7 @@ export default function App() {
             </Text>
             
             <Text style={styles.modalSteps}>
-              1. Installez l'extension "Get cookies.txt LOCALLY" dans Chrome/Edge{'\n'}
+              1. Installez l'extension "Get cookies.txt LOCALLY", que vous pouvez télécharger <Text style={{color: '#007AFF', textDecorationLine: 'underline'}} onPress={() => Linking.openURL('https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc')}>ici</Text> dans Chrome/Edge{'\n'}
               2. Allez sur youtube.com (connecté à votre compte){'\n'}
               3. Cliquez sur l'extension → Exporter{'\n'}
               4. Copiez tout le contenu et collez-le ci-dessous

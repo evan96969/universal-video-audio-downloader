@@ -60,7 +60,8 @@ class DownloadRequest(BaseModel):
 class CookieUpload(BaseModel):
     cookies_text: str
 
-COOKIE_FILE = Path("cookies.txt")
+COOKIES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
+COOKIE_FILE = Path(COOKIES_PATH)
 
 @app.post("/api/cookies")
 def upload_cookies(req: CookieUpload):
@@ -92,8 +93,7 @@ def upload_cookies(req: CookieUpload):
 @app.get("/api/cookies/status")
 def cookies_status():
     """Check if valid cookies are configured."""
-    from core.analyzer import _has_real_cookies
-    has_cookies = _has_real_cookies(str(COOKIE_FILE))
+    has_cookies = os.path.exists(COOKIES_PATH) and os.path.getsize(COOKIES_PATH) > 0
     return {"has_cookies": has_cookies}
 
 @app.delete("/api/cookies")

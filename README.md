@@ -131,7 +131,7 @@ YouTube peut bloquer les téléchargements avec le message **"Sign in to confirm
 
 ### Comment exporter ses cookies (si nécessaire)
 
-1. Installez l'extension [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) dans votre navigateur
+1. Installez l'extension "Get cookies.txt LOCALLY", que vous pouvez télécharger [ici](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) dans votre navigateur
 2. Connectez-vous à YouTube
 3. Exportez les cookies au format Netscape
 4. Collez le contenu dans le fichier `cookies.txt` à la racine du projet

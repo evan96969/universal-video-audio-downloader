@@ -9,6 +9,9 @@ from PySide6.QtWidgets import (
     QPushButton, QCheckBox, QComboBox, QFileDialog, QGroupBox,
     QFormLayout, QWidget, QMessageBox,
 )
+import shutil
+import os
+from pathlib import Path
 
 from config.settings import Settings
 from core.converter import AUDIO_FORMATS, AUDIO_BITRATES
@@ -68,6 +71,33 @@ class SettingsDialog(QDialog):
         ff_layout.addWidget(ff_check)
 
         root.addWidget(ff_group)
+
+        # ── Cookies / Auth ─────────────────────────────────────────
+        auth_group = QGroupBox("Authentification / Cookies")
+        auth_layout = QVBoxLayout(auth_group)
+        auth_layout.setSpacing(8)
+
+        cookie_desc = QLabel('Certains sites bloquent les téléchargements. Installez l\'extension "Get cookies.txt LOCALLY", que vous pouvez télécharger <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc">ici</a>, puis importez le fichier exporté.')
+        cookie_desc.setOpenExternalLinks(True)
+        cookie_desc.setWordWrap(True)
+        cookie_desc.setStyleSheet("color: #8b8b9e; font-size: 13px;")
+        auth_layout.addWidget(cookie_desc)
+        
+        cookie_row = QHBoxLayout()
+        self._cookie_edit = QLineEdit()
+        self._cookie_edit.setPlaceholderText("Chemin vers cookies.txt")
+        self._cookie_edit.setMinimumHeight(36)
+        cookie_row.addWidget(self._cookie_edit, stretch=1)
+
+        cookie_browse = QPushButton("Importer…")
+        cookie_browse.clicked.connect(self._browse_cookies)
+        cookie_row.addWidget(cookie_browse)
+        auth_layout.addLayout(cookie_row)
+
+        self._chk_remember_cookies = QCheckBox("Se souvenir de mes cookies (ne pas redemander au démarrage)")
+        auth_layout.addWidget(self._chk_remember_cookies)
+
+        root.addWidget(auth_group)
 
         # ── Defaults ───────────────────────────────────────────────
         def_group = QGroupBox("Préférences par défaut")
@@ -158,6 +188,8 @@ class SettingsDialog(QDialog):
         self._chk_subtitles.setChecked(s.get("download_subtitles", False))
         self._chk_metadata.setChecked(s.get("embed_metadata", True))
         self._chk_overwrite.setChecked(s.get("overwrite_existing", False))
+        self._cookie_edit.setText(s.get("cookie_file_path", ""))
+        self._chk_remember_cookies.setChecked(s.get("remember_cookies", False))
 
     def _save(self) -> None:
         s = self._settings
@@ -171,6 +203,23 @@ class SettingsDialog(QDialog):
         s.set("download_subtitles", self._chk_subtitles.isChecked())
         s.set("embed_metadata", self._chk_metadata.isChecked())
         s.set("overwrite_existing", self._chk_overwrite.isChecked())
+        s.set("cookie_file_path", self._cookie_edit.text() if self._chk_remember_cookies.isChecked() else "")
+        s.set("remember_cookies", self._chk_remember_cookies.isChecked())
+        
+        # Copy to root/cookies.txt
+        root_cookie = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "cookies.txt")
+        src_cookie = self._cookie_edit.text().strip()
+        if src_cookie and os.path.isfile(src_cookie):
+            try:
+                shutil.copy2(src_cookie, root_cookie)
+            except Exception:
+                pass
+        elif not self._chk_remember_cookies.isChecked() and os.path.isfile(root_cookie):
+            try:
+                os.remove(root_cookie)
+            except Exception:
+                pass
+
         self.settings_changed.emit()
         self.accept()
 
@@ -184,6 +233,14 @@ class SettingsDialog(QDialog):
         d = QFileDialog.getExistingDirectory(self, "Dossier de sortie", self._output_edit.text())
         if d:
             self._output_edit.setText(d)
+
+    def _browse_cookies(self) -> None:
+        f, _ = QFileDialog.getOpenFileName(
+            self, "Fichier Cookie", "",
+            "Texte (*.txt);;Tous (*)",
+        )
+        if f:
+            self._cookie_edit.setText(f)
 
     def _browse_ffmpeg(self) -> None:
         f, _ = QFileDialog.getOpenFileName(

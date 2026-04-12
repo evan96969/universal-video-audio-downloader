@@ -21,6 +21,8 @@ _DEFAULTS: dict[str, Any] = {
     "embed_metadata": True,
     "overwrite_existing": False,
     "ffmpeg_path": "",                   # empty = rely on PATH
+    "cookie_file_path": "",
+    "remember_cookies": False,
     "window_width": 1060,
     "window_height": 780,
 }
