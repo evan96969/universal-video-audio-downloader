@@ -128,7 +128,15 @@ def analyze_url(req: AnalyzeRequest):
             "raw_formats": media_info.formats
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        msg = str(e)
+        if "Failed to extract any player response" in msg:
+            raise HTTPException(status_code=400, detail=(
+                "Échec YouTube : yt-dlp ne parvient pas à extraire la réponse du player.\n"
+                "Solutions : 1) Mettez à jour yt-dlp (pip install -U yt-dlp)\n"
+                "2) Exportez vos cookies YouTube et placez-les dans cookies.txt\n"
+                "3) Réessayez dans quelques minutes."
+            ))
+        raise HTTPException(status_code=400, detail=msg)
 
 async def process_download(job_id: str, req: DownloadRequest):
     downloader = Downloader(
@@ -199,13 +207,21 @@ async def process_download(job_id: str, req: DownloadRequest):
              }), loop)
 
     except Exception as e:
+        msg = str(e)
+        if "Failed to extract any player response" in msg:
+            msg = (
+                "Échec YouTube : yt-dlp ne parvient pas à extraire la réponse du player.\n"
+                "Solutions : 1) Mettez à jour yt-dlp (pip install -U yt-dlp)\n"
+                "2) Exportez vos cookies YouTube et placez-les dans cookies.txt\n"
+                "3) Réessayez dans quelques minutes."
+            )
         active_jobs[job_id]["status"] = "failed"
-        active_jobs[job_id]["error"] = str(e)
+        active_jobs[job_id]["error"] = msg
         loop = active_jobs[job_id].get("loop")
         if loop and not loop.is_closed():
              asyncio.run_coroutine_threadsafe(broadcast_status(job_id, {
                  "type": "error",
-                 "message": str(e)
+                 "message": msg
              }), loop)
 
 async def broadcast_status(job_id: str, data: dict):
