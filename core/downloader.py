@@ -158,12 +158,6 @@ class Downloader:
             "overwrites": self._overwrite,
             "progress_hooks": [],
             "rm_cachedir": True,
-            "extractor_args": {
-                "youtube": {
-                    "player_client": ["tv_embedded", "web_creator", "default"],
-                    "po_token": ["web+auto"],
-                }
-            },
             "http_headers": {
                 "User-Agent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36",
                 "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",

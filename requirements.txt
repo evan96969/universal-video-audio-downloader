@@ -2,5 +2,3 @@ fastapi
 uvicorn
 websockets
 yt-dlp>=2025.1.1
-yt-dlp-get-pot
-bgutil-ytdlp-pot-provider

@@ -76,12 +76,6 @@ class Analyzer:
             "extractor_retries": 3,
             "fragment_retries": 3,
             "retry_sleep_functions": {'extractor': lambda n: 2 ** n},
-            "extractor_args": {
-                "youtube": {
-                    "player_client": ["tv_embedded", "web_creator", "default"],
-                    "po_token": ["web+auto"],
-                }
-            },
             "http_headers": {
                 "User-Agent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36",
                 "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",

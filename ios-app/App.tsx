@@ -12,7 +12,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [mediaData, setMediaData] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState('');
-  const [loadingText, setLoadingText] = useState('Analyse...');
+  const [loadingText, setLoadingText] = useState('Analyse (v1.1)...');
   
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState<any>(null);
