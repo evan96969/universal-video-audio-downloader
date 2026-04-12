@@ -28,7 +28,16 @@ class AnalyzeWorker(QThread):
             info = analyzer.analyze(self._url)
             self.finished.emit(info)
         except (ValueError, RuntimeError) as exc:
-            self.error.emit(str(exc))
+            msg = str(exc)
+            if "Failed to extract any player response" in msg:
+                self.error.emit(
+                    "Échec YouTube : yt-dlp ne parvient pas à extraire la réponse du player.\n"
+                    "Solutions : 1) Mettez à jour yt-dlp (pip install -U yt-dlp)\n"
+                    "2) Exportez vos cookies YouTube et placez-les dans cookies.txt\n"
+                    "3) Réessayez dans quelques minutes."
+                )
+            else:
+                self.error.emit(msg)
         except Exception as exc:
             log.exception("Erreur inattendue pendant l'analyse")
             self.error.emit(f"Erreur inattendue : {exc}")
